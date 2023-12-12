@@ -198,7 +198,7 @@ export default function SwapModal() {
           <div className="text-sm">
             <span className="inline-block w-16">Pay </span>
             <TokenSelectorComponent
-              disabled={true}
+              disabled={false}
               currentChain={srcChain}
               selectedToken={srcToken}
               setSelectedToken={(t) => {
