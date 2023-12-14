@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 
 const defaultAvailableChains = [
   ChainId.ETHEREUM,
+  ChainId.OPTIMISM,
   ChainId.ARBITRUM,
   ChainId.POLYGON,
   ChainId.BASE,

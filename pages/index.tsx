@@ -1,8 +1,11 @@
-import SwapModal from "../components/SwapModal";
+
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import Image from "next/image";
 import Head from "next/head";
+import SwapModalPUSDC from "@/components/SwapModalPUSDC";
+import SwapModalPWETH from "@/components/SwapModalPWETH";
+import SwapModalPDAI from "@/components/SwapModalPDAI";
 
 export default function Index() {
   return (
@@ -47,7 +50,9 @@ export default function Index() {
       </div>
       <div className="w-full flex justify-center mt-4">
         <div className="sm:w-[480px]">
-          <SwapModal />
+          <SwapModalPUSDC />
+          <SwapModalPWETH />
+          <SwapModalPDAI />
         </div>
       </div>
       <div className="absolute bottom-4 flex w-full justify-center text-gray-500">

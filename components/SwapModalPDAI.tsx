@@ -1,8 +1,8 @@
 import { TokenSelectorComponent } from "./TokenSelectorComponent";
-import ChainSelectMenu from "../components/ChainSelectorMenu";
+import ChainSelectMenu from "./ChainSelectorMenu";
 import { useContext, useEffect, useState, Fragment } from "react";
 import {
-  RouteSelectContext,
+  RouteSelectContextPDAI,
   getDefaultToken,
 } from "../lib/contexts/routeSelectContext";
 import {
@@ -25,8 +25,8 @@ import { sendTx } from "@/lib/sendTx";
 import { getAccount } from "@wagmi/core";
 import DestChainSelectMenu from "./DestChainSelectorMenu";
 
-export default function SwapModal() {
-  const { routeVars, updateRouteVars } = useContext(RouteSelectContext);
+export default function SwapModalPDAI() {
+  const { routeVarsPDAI, updateRouteVarsPDAI } = useContext(RouteSelectContextPDAI);
   const {
     setBoxActionArgs,
     boxActionResponse: { actionResponse },
@@ -41,14 +41,14 @@ export default function SwapModal() {
   const [hash, setHash] = useState<Hex>();
   const [srcTxReceipt, setSrcTxReceipt] = useState<TransactionReceipt>();
 
-  const { dstChain, dstToken } = routeVars;
-  const srcToken = routeVars.srcToken;
-  const srcChain = routeVars.srcChain;
+  const { dstChain, dstToken } = routeVarsPDAI;
+  const srcToken = routeVarsPDAI.srcToken;
+  const srcChain = routeVarsPDAI.srcChain;
 
-  const setSrcChain = (c: ChainId) => updateRouteVars({ srcChain: c });
-  const setSrcToken = (t: TokenInfo) => updateRouteVars({ srcToken: t });
+  const setSrcChain = (c: ChainId) => updateRouteVarsPDAI({ srcChain: c });
+  const setSrcToken = (t: TokenInfo) => updateRouteVarsPDAI({ srcToken: t });
   useEffect(() => {
-    updateRouteVars({
+    updateRouteVarsPDAI({
       srcChain: ChainId.ARBITRUM,
       srcToken: getDefaultToken(ChainId.ARBITRUM),
     });
@@ -137,7 +137,7 @@ export default function SwapModal() {
     if (continueDisabled || !chain) return;
     setSubmitting(true);
     setBoxActionArgs(undefined);
-    updateRouteVars({
+    updateRouteVarsPDAI({
       purchaseName: `${Number(srcDisplay).toPrecision(2)} ${dstToken.symbol}`,
     });
     if (srcInputDebounced) {
@@ -251,7 +251,7 @@ export default function SwapModal() {
               currentChain={dstChain}
               selectedToken={dstToken}
               setSelectedToken={(t) => {
-                updateRouteVars({ dstToken: t });
+                updateRouteVarsPDAI({ dstToken: t });
               }}
               wallet={connectedAddress}
             />{" "}
@@ -260,7 +260,7 @@ export default function SwapModal() {
               
               chainId={dstChain}
               onSelectChain={(c) => {
-                updateRouteVars({ dstChain: c });
+                updateRouteVarsPDAI({ dstChain: c });
               }}
             />
             <div className="my-4 px-2 font-medium leading-none relative text-3xl flex items-center">

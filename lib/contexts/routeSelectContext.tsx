@@ -1,9 +1,10 @@
 import { ChainId, TokenInfo, ethGasToken, getUsdc } from "@decent.xyz/box-common";
-import { pusdceToken } from "../constants";
+import { pusdceToken, pwethToken, pdaiToken } from "../constants";
 import { Dispatch, PropsWithChildren, createContext, useReducer } from "react";
 
 export const chainIcons: { [key: number]: string } = {
   [ChainId.ETHEREUM]: "/ethereum.svg",
+  [ChainId.OPTIMISM]: "/optimism.svg",
   [ChainId.ARBITRUM]: "/arbitrum.svg",
   [ChainId.POLYGON]: "/polygon.svg",
   [ChainId.BASE]: "/base.png",
@@ -12,6 +13,7 @@ export const chainIcons: { [key: number]: string } = {
 
 export const chainNames: { [key: number]: string } = {
   [ChainId.ETHEREUM]: "Ethereum",
+  [ChainId.OPTIMISM]: "Optimism",
   [ChainId.ARBITRUM]: "Arbitrum One",
   [ChainId.POLYGON]: "Polygon",
   [ChainId.BASE]: "Base",
@@ -39,11 +41,11 @@ export type RouteVars = {
   purchaseName: string;
 };
 
-export const RouteSelectContext = createContext<{
-  routeVars: RouteVars;
-  updateRouteVars: Dispatch<Partial<RouteVars>>;
+export const RouteSelectContextPUSDC = createContext<{
+  routeVarsPUSDC: RouteVars;
+  updateRouteVarsPUSDC: Dispatch<Partial<RouteVars>>;
 }>({
-  routeVars: {
+  routeVarsPUSDC: {
     srcChain: ChainId.OPTIMISM,
     srcToken: getDefaultToken(ChainId.OPTIMISM),
     dstChain: ChainId.OPTIMISM,
@@ -51,7 +53,37 @@ export const RouteSelectContext = createContext<{
     purchaseName: "",
     sameChain: false,
   },
-  updateRouteVars: () => {},
+  updateRouteVarsPUSDC: () => {},
+});
+
+export const RouteSelectContextPWETH = createContext<{
+  routeVarsPWETH: RouteVars;
+  updateRouteVarsPWETH: Dispatch<Partial<RouteVars>>;
+}>({
+  routeVarsPWETH: {
+    srcChain: ChainId.OPTIMISM,
+    srcToken: getDefaultToken(ChainId.OPTIMISM),
+    dstChain: ChainId.OPTIMISM,
+    dstToken: pwethToken,
+    purchaseName: "",
+    sameChain: false,
+  },
+  updateRouteVarsPWETH: () => {},
+});
+
+export const RouteSelectContextPDAI = createContext<{
+  routeVarsPDAI: RouteVars;
+  updateRouteVarsPDAI: Dispatch<Partial<RouteVars>>;
+}>({
+  routeVarsPDAI: {
+    srcChain: ChainId.OPTIMISM,
+    srcToken: getDefaultToken(ChainId.OPTIMISM),
+    dstChain: ChainId.OPTIMISM,
+    dstToken: pdaiToken,
+    purchaseName: "",
+    sameChain: false,
+  },
+  updateRouteVarsPDAI: () => {},
 });
 
 function routeReducer(prev: RouteVars, next: Partial<RouteVars>) {
@@ -81,8 +113,8 @@ export function getDefaultToken(chainId: ChainId) {
   return { ...usdcToken, chainId };
 }
 
-export default function RouteSelectProvider({ children }: PropsWithChildren) {
-  const [routeVars, updateRouteVars] = useReducer(routeReducer, {
+export default function RouteSelectProviderPUSDC({ children }: PropsWithChildren) {
+  const [routeVarsPUSDC, updateRouteVarsPUSDC] = useReducer(routeReducer, {
     srcChain: ChainId.ARBITRUM,
     srcToken: ethGasToken,
     dstChain: ChainId.OPTIMISM,
@@ -91,11 +123,50 @@ export default function RouteSelectProvider({ children }: PropsWithChildren) {
     purchaseName: "",
   });
 
-  const value = { routeVars, updateRouteVars };
+  const value = { routeVarsPUSDC, updateRouteVarsPUSDC };
 
   return (
-    <RouteSelectContext.Provider value={value}>
+    <RouteSelectContextPUSDC.Provider value={value}>
       {children}
-    </RouteSelectContext.Provider>
+    </RouteSelectContextPUSDC.Provider>
   );
 }
+
+export function RouteSelectProviderPWETH({ children }: PropsWithChildren) {
+  const [routeVarsPWETH, updateRouteVarsPWETH] = useReducer(routeReducer, {
+    srcChain: ChainId.ARBITRUM,
+    srcToken: ethGasToken,
+    dstChain: ChainId.OPTIMISM,
+    dstToken: pwethToken,
+    sameChain: false,
+    purchaseName: "",
+  });
+
+  const value = { routeVarsPWETH, updateRouteVarsPWETH };
+
+  return (
+    <RouteSelectContextPWETH.Provider value={value}>
+      {children}
+    </RouteSelectContextPWETH.Provider>
+  );
+}
+
+export function RouteSelectProviderPDAI({ children }: PropsWithChildren) {
+  const [routeVarsPDAI, updateRouteVarsPDAI] = useReducer(routeReducer, {
+    srcChain: ChainId.ARBITRUM,
+    srcToken: ethGasToken,
+    dstChain: ChainId.OPTIMISM,
+    dstToken: pdaiToken,
+    sameChain: false,
+    purchaseName: "",
+  });
+
+  const value = { routeVarsPDAI, updateRouteVarsPDAI };
+
+  return (
+    <RouteSelectContextPDAI.Provider value={value}>
+      {children}
+    </RouteSelectContextPDAI.Provider>
+  );
+}
+

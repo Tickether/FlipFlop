@@ -23,3 +23,27 @@ export const pusdceToken: TokenInfo = {
   chainId: ChainId.OPTIMISM,
   isNative: false,
 };
+
+export const PWETH_OPTIMISM = "0x29Cb69D4780B53c1e5CD4D2B817142D2e9890715";
+
+export const pwethToken: TokenInfo = {
+  address: PWETH_OPTIMISM,
+  decimals: 18,
+  name: "PoolTogether Prize WETH Coin",
+  symbol: "PWETH",
+  logo: `https://assets.coingecko.com/coins/images/32455/standard/prizeUSDCIcon_200.png?1698241065`,
+  chainId: ChainId.OPTIMISM,
+  isNative: false,
+};
+
+export const PDAI_OPTIMISM = "0xCe8293f586091d48A0cE761bBf85D5bCAa1B8d2b";
+
+export const pdaiToken: TokenInfo = {
+  address: PDAI_OPTIMISM,
+  decimals: 6,
+  name: "PoolTogether Prize DAI Coin",
+  symbol: "PDAI",
+  logo: `https://assets.coingecko.com/coins/images/32455/standard/prizeUSDCIcon_200.png?1698241065`,
+  chainId: ChainId.OPTIMISM,
+  isNative: false,
+};
