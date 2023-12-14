@@ -19,7 +19,7 @@ export const pusdceToken: TokenInfo = {
   decimals: 6,
   name: "PoolTogether Prize USD Coin",
   symbol: "PUSDC.E",
-  logo: `https://assets.coingecko.com/coins/images/32455/standard/prizeUSDCIcon_200.png?1698241065`,
+  logo: `https://app.cabana.fi/icons/pUSDC.e.svg`,
   chainId: ChainId.OPTIMISM,
   isNative: false,
 };
@@ -31,7 +31,7 @@ export const pwethToken: TokenInfo = {
   decimals: 18,
   name: "PoolTogether Prize WETH Coin",
   symbol: "PWETH",
-  logo: `https://assets.coingecko.com/coins/images/32455/standard/prizeUSDCIcon_200.png?1698241065`,
+  logo: `https://app.cabana.fi/icons/pWETH.svg`,
   chainId: ChainId.OPTIMISM,
   isNative: false,
 };
@@ -43,7 +43,7 @@ export const pdaiToken: TokenInfo = {
   decimals: 6,
   name: "PoolTogether Prize DAI Coin",
   symbol: "PDAI",
-  logo: `https://assets.coingecko.com/coins/images/32455/standard/prizeUSDCIcon_200.png?1698241065`,
+  logo: `https://app.cabana.fi/icons/pDAI.svg`,
   chainId: ChainId.OPTIMISM,
   isNative: false,
 };
