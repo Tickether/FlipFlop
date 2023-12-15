@@ -2,7 +2,7 @@ import { Fragment, useEffect } from "react";
 import Image from "next/image";
 import { Popover, Transition } from "@headlessui/react";
 import { ChainId } from "@decent.xyz/box-common";
-import { chainIcons, chainNames } from "../lib/contexts/routeSelectContext";
+import { chainIconsPWETH, chainNamesPWETH } from "../lib/contexts/routeSelectContextPWETH";
 import { useSearchParams } from "next/navigation";
 
 const defaultAvailableChains = [
@@ -23,7 +23,7 @@ export interface ChainSelectMenuProps {
   anchorToRight?: boolean;
 }
 
-export default function ChainSelectMenu({
+export default function ChainSelectMenuPWETH({
   chainId,
   onSelectChain,
   availableChains = defaultAvailableChains,
@@ -44,7 +44,7 @@ export default function ChainSelectMenu({
         <>
           <Popover.Button>
             {renderBtnInner ? (
-              renderBtnInner(chainNames[chainId], chainIcons[chainId])
+              renderBtnInner(chainNamesPWETH[chainId], chainIconsPWETH[chainId])
             ) : (
               <div className="border border-[#BEC3C9] rounded px-2 leading-none inline-flex items-baseline py-1.5">
                 <span className="self-center">
@@ -52,11 +52,11 @@ export default function ChainSelectMenu({
                     className="w-3.5 h-3.5 object-contain"
                     width="14"
                     height="14"
-                    alt={chainNames[chainId]}
-                    src={chainIcons[chainId]}
+                    alt={chainNamesPWETH[chainId]}
+                    src={chainIconsPWETH[chainId]}
                   />
                 </span>
-                <span className="ml-1">{chainNames[chainId]}</span>
+                <span className="ml-1">{chainNamesPWETH[chainId]}</span>
               </div>
             )}
           </Popover.Button>
@@ -93,10 +93,10 @@ export default function ChainSelectMenu({
                       className="w-3.5 h-3.5 object-contain"
                       width="14"
                       height="14"
-                      src={chainIcons[c]}
-                      alt={chainNames[c]}
+                      src={chainIconsPWETH[c]}
+                      alt={chainNamesPWETH[c]}
                     />
-                    <div className="ml-1">{chainNames[c]}</div>
+                    <div className="ml-1">{chainNamesPWETH[c]}</div>
                   </button>
                 ))}
               </div>

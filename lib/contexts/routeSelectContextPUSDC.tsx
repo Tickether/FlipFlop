@@ -2,7 +2,7 @@ import { ChainId, TokenInfo, ethGasToken, getUsdc } from "@decent.xyz/box-common
 import { pusdceToken, pwethToken, pdaiToken } from "../constants";
 import { Dispatch, PropsWithChildren, createContext, useReducer } from "react";
 
-export const chainIcons: { [key: number]: string } = {
+export const chainIconsPUSDC: { [key: number]: string } = {
   [ChainId.ETHEREUM]: "/ethereum.svg",
   [ChainId.OPTIMISM]: "/optimism.svg",
   [ChainId.ARBITRUM]: "/arbitrum.svg",
@@ -11,22 +11,22 @@ export const chainIcons: { [key: number]: string } = {
   [ChainId.AVALANCHE]: "/avalanche.svg",
 };
 
-export const chainNames: { [key: number]: string } = {
+export const chainNamesPUSDC: { [key: number]: string } = {
   [ChainId.ETHEREUM]: "Ethereum",
-  [ChainId.OPTIMISM]: "Optimism",
+  [ChainId.OPTIMISM]: "OP Mainnet",
   [ChainId.ARBITRUM]: "Arbitrum One",
   [ChainId.POLYGON]: "Polygon",
   [ChainId.BASE]: "Base",
   [ChainId.AVALANCHE]: "Avalanche",
 };
 
-export const destChainIcons: { [key: number]: string } = {
+export const destChainIconsPUSDC: { [key: number]: string } = {
 
   [ChainId.OPTIMISM]: "/optimism.svg",
 
 };
 
-export const destChainNames: { [key: number]: string } = {
+export const destChainNamesPUSDC: { [key: number]: string } = {
 
   [ChainId.OPTIMISM]: "OP Mainnet",
 
@@ -56,37 +56,8 @@ export const RouteSelectContextPUSDC = createContext<{
   updateRouteVarsPUSDC: () => {},
 });
 
-export const RouteSelectContextPWETH = createContext<{
-  routeVarsPWETH: RouteVars;
-  updateRouteVarsPWETH: Dispatch<Partial<RouteVars>>;
-}>({
-  routeVarsPWETH: {
-    srcChain: ChainId.OPTIMISM,
-    srcToken: getDefaultToken(ChainId.OPTIMISM),
-    dstChain: ChainId.OPTIMISM,
-    dstToken: pwethToken,
-    purchaseName: "",
-    sameChain: false,
-  },
-  updateRouteVarsPWETH: () => {},
-});
 
-export const RouteSelectContextPDAI = createContext<{
-  routeVarsPDAI: RouteVars;
-  updateRouteVarsPDAI: Dispatch<Partial<RouteVars>>;
-}>({
-  routeVarsPDAI: {
-    srcChain: ChainId.OPTIMISM,
-    srcToken: getDefaultToken(ChainId.OPTIMISM),
-    dstChain: ChainId.OPTIMISM,
-    dstToken: pdaiToken,
-    purchaseName: "",
-    sameChain: false,
-  },
-  updateRouteVarsPDAI: () => {},
-});
-
-function routeReducer(prev: RouteVars, next: Partial<RouteVars>) {
+function routeReducerPUSDC(prev: RouteVars, next: Partial<RouteVars>) {
   const newVars = { ...prev, ...next };
 
   if (newVars.dstChain !== prev.dstChain && !next.dstToken) {
@@ -114,7 +85,7 @@ export function getDefaultToken(chainId: ChainId) {
 }
 
 export default function RouteSelectProviderPUSDC({ children }: PropsWithChildren) {
-  const [routeVarsPUSDC, updateRouteVarsPUSDC] = useReducer(routeReducer, {
+  const [routeVarsPUSDC, updateRouteVarsPUSDC] = useReducer(routeReducerPUSDC, {
     srcChain: ChainId.ARBITRUM,
     srcToken: ethGasToken,
     dstChain: ChainId.OPTIMISM,
@@ -129,44 +100,6 @@ export default function RouteSelectProviderPUSDC({ children }: PropsWithChildren
     <RouteSelectContextPUSDC.Provider value={value}>
       {children}
     </RouteSelectContextPUSDC.Provider>
-  );
-}
-
-export function RouteSelectProviderPWETH({ children }: PropsWithChildren) {
-  const [routeVarsPWETH, updateRouteVarsPWETH] = useReducer(routeReducer, {
-    srcChain: ChainId.ARBITRUM,
-    srcToken: ethGasToken,
-    dstChain: ChainId.OPTIMISM,
-    dstToken: pwethToken,
-    sameChain: false,
-    purchaseName: "",
-  });
-
-  const value = { routeVarsPWETH, updateRouteVarsPWETH };
-
-  return (
-    <RouteSelectContextPWETH.Provider value={value}>
-      {children}
-    </RouteSelectContextPWETH.Provider>
-  );
-}
-
-export function RouteSelectProviderPDAI({ children }: PropsWithChildren) {
-  const [routeVarsPDAI, updateRouteVarsPDAI] = useReducer(routeReducer, {
-    srcChain: ChainId.ARBITRUM,
-    srcToken: ethGasToken,
-    dstChain: ChainId.OPTIMISM,
-    dstToken: pdaiToken,
-    sameChain: false,
-    purchaseName: "",
-  });
-
-  const value = { routeVarsPDAI, updateRouteVarsPDAI };
-
-  return (
-    <RouteSelectContextPDAI.Provider value={value}>
-      {children}
-    </RouteSelectContextPDAI.Provider>
   );
 }
 

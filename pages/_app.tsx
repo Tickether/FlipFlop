@@ -17,7 +17,9 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import localFont from "next/font/local";
 import { BoxHooksContextProvider } from "@decent.xyz/box-hooks";
 import { BoxActionContextProvider } from "../lib/contexts/decentActionContext";
-import RouteSelectProvider from "../lib/contexts/routeSelectContext";
+import RouteSelectProviderPUSDC from "../lib/contexts/routeSelectContextPUSDC";
+import RouteSelectProviderPWETH from "@/lib/contexts/routeSelectContextPWETH";
+import RouteSelectProviderPDAI from "@/lib/contexts/routeSelectContextPDAI";
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -55,13 +57,18 @@ export default function App({ Component, pageProps }: AppProps) {
         <BoxHooksContextProvider
           apiKey={process.env.NEXT_PUBLIC_DECENT_API_KEY as string}
         >
-          <RouteSelectProvider>
+          <RouteSelectProviderPUSDC>
+          <RouteSelectProviderPWETH>
+          <RouteSelectProviderPDAI>
             <BoxActionContextProvider>
               
               <Component {...pageProps} />
       
             </BoxActionContextProvider>
-          </RouteSelectProvider>
+         
+          </RouteSelectProviderPDAI>
+          </RouteSelectProviderPWETH>
+          </RouteSelectProviderPUSDC>
         </BoxHooksContextProvider>
       </RainbowKitProvider>
     </WagmiConfig>

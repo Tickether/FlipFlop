@@ -2,7 +2,7 @@ import { Fragment, useEffect } from "react";
 import Image from "next/image";
 import { Popover, Transition } from "@headlessui/react";
 import { ChainId } from "@decent.xyz/box-common";
-import { destChainIcons, destChainNames } from "../lib/contexts/routeSelectContext";
+import { destChainIconsPWETH, destChainNamesPWETH } from "../lib/contexts/routeSelectContextPWETH";
 import { useSearchParams } from "next/navigation";
 
 const defaultAvailableChains = [
@@ -39,7 +39,7 @@ export default function DestChainSelectMenu({
         <>
           <Popover.Button>
             {renderBtnInner ? (
-              renderBtnInner(destChainNames[chainId], destChainIcons[chainId])
+              renderBtnInner(destChainNamesPWETH[chainId], destChainIconsPWETH[chainId])
             ) : (
               <div className="border border-[#BEC3C9] rounded px-2 leading-none inline-flex items-baseline py-1.5">
                 <span className="self-center">
@@ -47,11 +47,11 @@ export default function DestChainSelectMenu({
                     className="w-3.5 h-3.5 object-contain"
                     width="14"
                     height="14"
-                    alt={destChainNames[chainId]}
-                    src={destChainIcons[chainId]}
+                    alt={destChainNamesPWETH[chainId]}
+                    src={destChainIconsPWETH[chainId]}
                   />
                 </span>
-                <span className="ml-1">{destChainNames[chainId]}</span>
+                <span className="ml-1">{destChainNamesPWETH[chainId]}</span>
               </div>
             )}
           </Popover.Button>
@@ -88,10 +88,10 @@ export default function DestChainSelectMenu({
                       className="w-3.5 h-3.5 object-contain"
                       width="14"
                       height="14"
-                      src={destChainIcons[c]}
-                      alt={destChainNames[c]}
+                      src={destChainIconsPWETH[c]}
+                      alt={destChainNamesPWETH[c]}
                     />
-                    <div className="ml-1">{destChainNames[c]}</div>
+                    <div className="ml-1">{destChainNamesPWETH[c]}</div>
                   </button>
                 ))}
               </div>

@@ -1,10 +1,10 @@
 import { TokenSelectorComponent } from "./TokenSelectorComponent";
-import ChainSelectMenu from "../components/ChainSelectorMenu";
+import ChainSelectMenuPWETH from "./ChainSelectorMenuPWETH";
 import { useContext, useEffect, useState, Fragment } from "react";
 import {
   RouteSelectContextPWETH,
   getDefaultToken,
-} from "../lib/contexts/routeSelectContext";
+} from "../lib/contexts/routeSelectContextPWETH";
 import {
   ChainId,
   EvmTransaction,
@@ -23,7 +23,7 @@ import { Hex, TransactionReceipt } from "viem";
 import { useBalance } from "../lib/hooks/useBalance";
 import { sendTx } from "@/lib/sendTx";
 import { getAccount } from "@wagmi/core";
-import DestChainSelectMenu from "./DestChainSelectorMenu";
+import DestChainSelectMenu from "./DestChainSelectorMenuPUSDC";
 
 export default function SwapModalPWETH() {
   const { routeVarsPWETH, updateRouteVarsPWETH } = useContext(RouteSelectContextPWETH);
@@ -208,7 +208,7 @@ export default function SwapModalPWETH() {
               wallet={connectedAddress}
             />{" "}
             on{" "}
-            <ChainSelectMenu
+            <ChainSelectMenuPWETH
               chainId={srcChain}
               onSelectChain={(c) => {
                 setSrcChain(c);

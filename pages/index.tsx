@@ -51,7 +51,11 @@ export default function Index() {
       <div className="w-full flex justify-center mt-4">
         <div className="sm:w-[480px]">
           <SwapModalPUSDC />
+        </div>
+        <div className="sm:w-[480px]">
           <SwapModalPWETH />
+        </div>
+        <div className="sm:w-[480px]">
           <SwapModalPDAI />
         </div>
       </div>
