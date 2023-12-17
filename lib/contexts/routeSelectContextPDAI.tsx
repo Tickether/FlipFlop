@@ -1,4 +1,4 @@
-import { ChainId, TokenInfo, ethGasToken, getUsdc } from "@decent.xyz/box-common";
+import { BaseAssets, ChainId, TokenInfo, ethGasToken, getBaseAssetsInfo, getUsdc } from "@decent.xyz/box-common";
 import { pusdceToken, pwethToken, pdaiToken } from "../constants";
 import { Dispatch, PropsWithChildren, createContext, useReducer } from "react";
 
@@ -47,7 +47,7 @@ export const RouteSelectContextPDAI = createContext<{
 }>({
   routeVarsPDAI: {
     srcChain: ChainId.OPTIMISM,
-    srcToken: getDefaultToken(ChainId.OPTIMISM),
+    srcToken: getDefaultToken(ChainId.OPTIMISM),//getBaseAssetsInfo({chainId: ChainId.OPTIMISM, asset: BaseAssets.DAI}),
     dstChain: ChainId.OPTIMISM,
     dstToken: pdaiToken,
     purchaseName: "",
@@ -71,16 +71,23 @@ function routeReducerPDAI(prev: RouteVars, next: Partial<RouteVars>) {
 }
 
 export function getDefaultToken(chainId: ChainId) {
-  const usdcToken: TokenInfo = {
-    address: getUsdc(chainId),
-    decimals: 6,
-    name: "USD Coin",
-    symbol: "USDC",
-    logo: `https://s3.coinmarketcap.com/static-gravity/image/5a8229787b5e4c809b5914eef709b59a.png`,
-    chainId: chainId,
+  /*
+  
+  */
+  const baseToken = getBaseAssetsInfo({chainId: chainId, asset: BaseAssets.DAI})
+  const daiToken: TokenInfo = {
+    address: baseToken.address,
+    decimals: baseToken.decimals,
+    name: baseToken.name,
+    symbol: baseToken.symbol,
+    logo: `https://assets.coingecko.com/coins/images/9956/standard/Badge_Dai.png`,
+    chainId: baseToken.chainId,
     isNative: false,
   };
-  return { ...usdcToken, chainId };
+ 
+
+  console.log(daiToken)
+  return { ...daiToken, chainId };
 }
 
 

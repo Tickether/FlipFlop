@@ -1,4 +1,4 @@
-import { ChainId, TokenInfo, ethGasToken, getUsdc } from "@decent.xyz/box-common";
+import { ChainId, TokenInfo, ethGasToken, getUsdc, getWeth } from "@decent.xyz/box-common";
 import { pusdceToken, pwethToken, pdaiToken } from "../constants";
 import { Dispatch, PropsWithChildren, createContext, useReducer } from "react";
 
@@ -73,16 +73,16 @@ function routeReducerPWETH(prev: RouteVars, next: Partial<RouteVars>) {
 }
 
 export function getDefaultToken(chainId: ChainId) {
-  const usdcToken: TokenInfo = {
-    address: getUsdc(chainId),
-    decimals: 6,
-    name: "USD Coin",
-    symbol: "USDC",
-    logo: `https://s3.coinmarketcap.com/static-gravity/image/5a8229787b5e4c809b5914eef709b59a.png`,
+  const wethToken: TokenInfo = {
+    address: getWeth(chainId),
+    decimals: 18,
+    name: "Wrapped Ethereum",
+    symbol: "WETH",
+    logo: `https://assets.coingecko.com/coins/images/2518/standard/weth.png`,
     chainId: chainId,
     isNative: false,
   };
-  return { ...usdcToken, chainId };
+  return { ...wethToken, chainId };
 }
 
 
