@@ -1,6 +1,7 @@
 import Image from "next/image"
 import DepositModalDAI from "../DepositModalDAI"
-import { useAccount } from "wagmi"
+import { useAccount, useBalance } from "wagmi"
+import { PDAI_OPTIMISM } from "@/lib/constants"
 
 interface PdaiProps {
     setOpenModalPDAI: (openPdaiModal : boolean) => void
@@ -8,6 +9,12 @@ interface PdaiProps {
 
 export default function PDAI({setOpenModalPDAI} : PdaiProps) {
     const { address } = useAccount()
+    const { data, isError, isLoading } = useBalance({
+        token: `0x${PDAI_OPTIMISM?.slice(2)}`,
+        address: address!,
+        watch: true,
+        chainId: 10
+    })
     return (
         <>
             <main className="main fixed flex flex-col text-purple-700 bg-opacity-7 w-screen h-screen items-center justify-center top-0 left-0 right-0 bottom-0 backdrop-blur-[666.666px]">
@@ -20,7 +27,12 @@ export default function PDAI({setOpenModalPDAI} : PdaiProps) {
                             height={36}
                         />
                     </div>
-                    <DepositModalDAI connectedAddress={address} />
+                    <div>
+                        <div>
+                            Balance: {data?.formatted} {data?.symbol}
+                        </div>
+                        <DepositModalDAI connectedAddress={address} />
+                    </div>
                 </div>
             </main>
         </>
