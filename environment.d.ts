@@ -1,7 +1,7 @@
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            NEXT_PUBLIC_ENABLE_TESTNETS: string
+            NEXT_PUBLIC_ALCHEMY_API_KEY: string
             NEXT_PUBLIC_W3M_PROJECT_ID: string
             NEXT_PUBLIC_DECENT_API_KEY: string
         }

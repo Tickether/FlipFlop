@@ -1,57 +1,51 @@
 import { TokenSelectorComponent } from "./TokenSelectorComponent";
-import ChainSelectMenuPUSDC from "./ChainSelectorMenuPUSDC";
+import ChainSelectMenu from "./ChainSelectorMenu";
 import { useContext, useEffect, useState, Fragment } from "react";
 import {
-  RouteSelectContextPUSDC,
+  RouteSelectContext,
   getDefaultToken,
-} from "../lib/contexts/routeSelectContextPUSDC";
+} from "../lib/contexts/routeSelectContext";
 import {
   ChainId,
-  EvmTransaction,
   TokenInfo,
 } from "@decent.xyz/box-common";
 import useDebounced from "../lib/useDebounced";
 import { useAmtInQuote, useAmtOutQuote } from "../lib/hooks/useSwapQuotes";
 import { BoxActionContext } from "../lib/contexts/decentActionContext";
-import {
-  generateDecentAmountInParams,
-  generateDecentAmountOutParams,
-} from "../lib/generateDecentParams";
 import { roundValue } from "../lib/roundValue";
-import { useAccount, useNetwork, useSwitchNetwork } from "wagmi";
-import { Hex, TransactionReceipt } from "viem";
+import { erc20ABI, useNetwork } from "wagmi";
+import { Hex, } from "viem";
 import { useBalance } from "../lib/hooks/useBalance";
-import { sendTx } from "@/lib/sendTx";
-import { getAccount } from "@wagmi/core";
-import DestChainSelectMenu from "./DestChainSelectorMenuPUSDC";
+import { confirmRoute, executeTransaction } from "@/lib/executeTransaction";
+import { PWETH_OPTIMISM, wethToken } from "@/lib/constants";
+import Image from "next/image";
 
-export default function SwapModalPUSDC() {
-  const { routeVarsPUSDC, updateRouteVarsPUSDC } = useContext(RouteSelectContextPUSDC);
+export default function DepositModalWETH({ connectedAddress }: any) {
+  //pool together v5 example
+  const DEPOSIT_SIGNATURE = 'function deposit(uint256 _assets,address _receiver)';
   
+  
+  const { routeVars, updateRouteVars } = useContext(RouteSelectContext);
   const {
     setBoxActionArgs,
     boxActionResponse: { actionResponse },
   } = useContext(BoxActionContext);
 
   const { chain } = useNetwork();
-  const { switchNetworkAsync } = useSwitchNetwork();
-  const { address: connectedAddress } = useAccount();
-  const account = getAccount();
 
   const [showContinue, setShowContinue] = useState(true);
   const [hash, setHash] = useState<Hex>();
-  const [srcTxReceipt, setSrcTxReceipt] = useState<TransactionReceipt>();
 
-  const { dstChain, dstToken } = routeVarsPUSDC;
-  const srcToken = routeVarsPUSDC.srcToken;
-  const srcChain = routeVarsPUSDC.srcChain;
+  const { dstChain, dstToken } = routeVars;
+  const srcToken = routeVars.srcToken;
+  const srcChain = routeVars.srcChain;
 
-  const setSrcChain = (c: ChainId) => updateRouteVarsPUSDC({ srcChain: c });
-  const setSrcToken = (t: TokenInfo) => updateRouteVarsPUSDC({ srcToken: t });
+  const setSrcChain = (c: ChainId) => updateRouteVars({ srcChain: c });
+  const setSrcToken = (t: TokenInfo) => updateRouteVars({ srcToken: t });
   useEffect(() => {
-    updateRouteVarsPUSDC({
-      srcChain: ChainId.ARBITRUM,
-      srcToken: getDefaultToken(ChainId.ARBITRUM),
+    updateRouteVars({
+      dstChain: ChainId.OPTIMISM,
+      dstToken: wethToken,
     });
   }, []);
 
@@ -129,65 +123,21 @@ export default function SwapModalPUSDC() {
     !!submitErrorText ||
     !!amtOutErrorText ||
     !!amtInErrorText ||
+    !chain ||
     srcSpinning ||
     dstSpinning ||
     !(Number(srcInputDebounced) || Number(dstInputDebounced)) ||
     submitting;
+  
+  const confirmDisabled = !actionResponse?.tx;
 
-  const onContinueClick = () => {
-    if (continueDisabled || !chain) return;
-    setSubmitting(true);
-    setBoxActionArgs(undefined);
-    updateRouteVarsPUSDC({
-      purchaseName: `${Number(srcDisplay).toPrecision(2)} ${dstToken.symbol}`,
-    });
-    if (srcInputDebounced) {
-      const actionArgs = generateDecentAmountInParams({
-        srcToken,
-        dstToken: dstToken,
-        srcAmount: srcInputDebounced,
-        connectedAddress,
-        toAddress: connectedAddress,
-      });
-      setBoxActionArgs(actionArgs);
-      setShowContinue(false);
-    } else if (dstInputDebounced) {
-      const actionArgs = generateDecentAmountOutParams({
-        srcToken,
-        dstToken: dstToken,
-        dstAmount: dstInputDebounced,
-        connectedAddress,
-        toAddress: connectedAddress,
-      });
-      setBoxActionArgs(actionArgs);
-      setShowContinue(false);
-    } else {
-      setSubmitting(false);
-      throw "Can't submit!";
-    }
-  };
+  
 
-  const onConfirmClick = async () => {
-    console.log("Sending tx...", actionResponse?.tx);
-    try {
-      await sendTx({
-        account,
-        activeChainId: chain?.id!,
-        srcChainId: srcChain,
-        actionResponseTx: actionResponse?.tx as EvmTransaction,
-        setSrcTxReceipt,
-        setHash,
-        switchNetworkAsync,
-      });
-      setSubmitting(true);
-    } catch (e) {
-      console.log("Error sending tx.", e);
-      setShowContinue(true);
-    }
-  };
 
   return (
     <>
+    <div className="text-sm text-gray-500 pt-4">Deposit into this <a href='https://optimistic.etherscan.io/token/0xe3b3a464ee575e8e25d2508918383b89c832f275#writeContract' 
+    target='_blank' className="text-primary hover:opactiy-80">Pool Together</a> contract to receive pWETH</div>
       <div className="group mt-8 bg-white">
         <div
           className={
@@ -209,7 +159,7 @@ export default function SwapModalPUSDC() {
               wallet={connectedAddress}
             />{" "}
             on{" "}
-            <ChainSelectMenuPUSDC
+            <ChainSelectMenu
               chainId={srcChain}
               onSelectChain={(c) => {
                 setSrcChain(c);
@@ -246,24 +196,20 @@ export default function SwapModalPUSDC() {
           }
         >
           <div className="text-sm">
-            <span className="inline-block w-16">Receive </span>
-            <TokenSelectorComponent
-              disabled={true}
-              currentChain={dstChain}
-              selectedToken={dstToken}
-              setSelectedToken={(t) => {
-                updateRouteVarsPUSDC({ dstToken: t });
-              }}
-              wallet={connectedAddress}
-            />{" "}
-            on{" "}
-            <DestChainSelectMenu
-              
-              chainId={dstChain}
-              onSelectChain={(c) => {
-                updateRouteVarsPUSDC({ dstChain: c });
-              }}
-            />
+            <div className="flex items-center gap-1">
+              <span className="inline-block w-16 flex">Receive </span>
+              <TokenSelectorComponent
+                disabled={true}
+                currentChain={dstChain}
+                selectedToken={dstToken}
+                setSelectedToken={(t) => {
+                  updateRouteVars({ dstToken: wethToken });
+                }}
+                wallet={connectedAddress}
+              />{" "}
+              on{" "}
+              <Image src='/optimism.svg' height={14} width={14} alt='logo' /> Optimism
+            </div>
             <div className="my-4 px-2 font-medium leading-none relative text-3xl flex items-center">
               {dstSpinning && (
                 <div className="absolute inset-0 rounded load-shine opacity-75" />
@@ -273,7 +219,7 @@ export default function SwapModalPUSDC() {
                 type="text"
                 value={dstDisplay}
                 onChange={(e) => handleDstAmtChange(e.target.value)}
-                disabled={dstSpinning || submitting}
+                disabled={true}
               />
               <div className="absolute right-4 text-gray-mid-light pointer-events-none">
                 {dstToken.symbol}
@@ -304,13 +250,35 @@ export default function SwapModalPUSDC() {
       <div className="text-red-500">{submitErrorText}</div>
       <div className="mt-auto"></div>
       {showContinue ? (
+        
         <button
           className={
-            "bg-black text-white text-center font-medium" +
+            `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+            "text-center font-medium" +
             " w-full rounded-lg p-2 mt-4" +
             " relative flex items-center justify-center"
           }
-          onClick={onContinueClick}
+          onClick={() => confirmRoute({
+            chain: chain!,
+            srcChain,
+            // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
+            srcToken,
+            dstToken,
+            isNative: false,
+            setBoxActionArgs,
+            updateRouteVars,
+            // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
+            dstInputVal: srcInputDebounced!,
+            contractAddress: `0x${PWETH_OPTIMISM?.slice(2)}`,
+            signature: DEPOSIT_SIGNATURE,
+            args: [srcInputDebounced, connectedAddress],
+          
+            connectedAddress,
+            continueDisabled,
+            setSubmitting,
+            setShowContinue,
+            srcDisplay
+          })}
           disabled={continueDisabled}
         >
           Confirm Selections
@@ -318,20 +286,26 @@ export default function SwapModalPUSDC() {
       ) : (
         <button
           className={
-            "bg-primary text-white text-center font-medium" +
+            `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
+            "text-center font-medium" +
             " w-full rounded-lg p-2 mt-4" +
             " relative flex items-center justify-center"
           }
-          onClick={onConfirmClick}
+          disabled={confirmDisabled}
+          onClick={() => executeTransaction({
+            actionResponse,
+            setSubmitting,
+            setHash,
+            setShowContinue
+          })}
         >
-          Swap
+          Deposit
           {submitting && <div className="absolute right-4 load-spinner"></div>}
         </button>
       )}
-      {srcTxReceipt && (
+      {hash && (
         <div>
           <p>{hash}</p>
-          <p>{srcTxReceipt.blockHash}</p>
         </div>
       )}
     </>

@@ -1,56 +1,53 @@
 import { TokenSelectorComponent } from "./TokenSelectorComponent";
-import ChainSelectMenuPWETH from "./ChainSelectorMenuPWETH";
+import ChainSelectMenu from "./ChainSelectorMenu";
 import { useContext, useEffect, useState, Fragment } from "react";
 import {
-  RouteSelectContextPWETH,
+  RouteSelectContext,
   getDefaultToken,
-} from "../lib/contexts/routeSelectContextPWETH";
+} from "../lib/contexts/routeSelectContext";
 import {
   ChainId,
-  EvmTransaction,
   TokenInfo,
 } from "@decent.xyz/box-common";
 import useDebounced from "../lib/useDebounced";
 import { useAmtInQuote, useAmtOutQuote } from "../lib/hooks/useSwapQuotes";
 import { BoxActionContext } from "../lib/contexts/decentActionContext";
-import {
-  generateDecentAmountInParams,
-  generateDecentAmountOutParams,
-} from "../lib/generateDecentParams";
 import { roundValue } from "../lib/roundValue";
-import { useAccount, useNetwork, useSwitchNetwork } from "wagmi";
-import { Hex, TransactionReceipt } from "viem";
+import { erc20ABI, useContractRead, useNetwork, useSignTypedData } from "wagmi";
+import { Hex, Signature, hexToSignature, parseUnits } from "viem";
 import { useBalance } from "../lib/hooks/useBalance";
-import { sendTx } from "@/lib/sendTx";
-import { getAccount } from "@wagmi/core";
-import DestChainSelectMenu from "./DestChainSelectorMenuPUSDC";
+import { confirmRoute, executeTransaction } from "@/lib/executeTransaction";
+import { PUSDC_OPTIMISM, usdcToken } from "@/lib/constants";
+import Image from "next/image";
 
-export default function SwapModalPWETH() {
-  const { routeVarsPWETH, updateRouteVarsPWETH } = useContext(RouteSelectContextPWETH);
+export default function DepositModalUSDC({ connectedAddress }: any) {
+  //pool together v5 example
+  const DEPOSIT_SIGNATURE = 'function deposit(uint256 _assets,address _receiver)';
+  const DEPOSIT_wPERMIT_SIGNATURE = 'function depositWithPermit(uint256 _assets,address _owner,uint256 _deadline,uint8 _v,bytes32 _r,bytes32 _s)';
+  
+  
+  const { routeVars, updateRouteVars } = useContext(RouteSelectContext);
   const {
     setBoxActionArgs,
     boxActionResponse: { actionResponse },
   } = useContext(BoxActionContext);
 
   const { chain } = useNetwork();
-  const { switchNetworkAsync } = useSwitchNetwork();
-  const { address: connectedAddress } = useAccount();
-  const account = getAccount();
 
   const [showContinue, setShowContinue] = useState(true);
   const [hash, setHash] = useState<Hex>();
-  const [srcTxReceipt, setSrcTxReceipt] = useState<TransactionReceipt>();
+  const [sig, setSig] = useState< Signature | null>(null);
 
-  const { dstChain, dstToken } = routeVarsPWETH;
-  const srcToken = routeVarsPWETH.srcToken;
-  const srcChain = routeVarsPWETH.srcChain;
+  const { dstChain, dstToken } = routeVars;
+  const srcToken = routeVars.srcToken;
+  const srcChain = routeVars.srcChain;
 
-  const setSrcChain = (c: ChainId) => updateRouteVarsPWETH({ srcChain: c });
-  const setSrcToken = (t: TokenInfo) => updateRouteVarsPWETH({ srcToken: t });
+  const setSrcChain = (c: ChainId) => updateRouteVars({ srcChain: c });
+  const setSrcToken = (t: TokenInfo) => updateRouteVars({ srcToken: t });
   useEffect(() => {
-    updateRouteVarsPWETH({
-      srcChain: ChainId.ARBITRUM,
-      srcToken: getDefaultToken(ChainId.ARBITRUM),
+    updateRouteVars({
+      dstChain: ChainId.OPTIMISM,
+      dstToken: usdcToken,
     });
   }, []);
 
@@ -128,65 +125,115 @@ export default function SwapModalPWETH() {
     !!submitErrorText ||
     !!amtOutErrorText ||
     !!amtInErrorText ||
+    !chain ||
     srcSpinning ||
     dstSpinning ||
     !(Number(srcInputDebounced) || Number(dstInputDebounced)) ||
     submitting;
+  
+  const confirmDisabled = !actionResponse?.tx;
 
-  const onContinueClick = () => {
-    if (continueDisabled || !chain) return;
-    setSubmitting(true);
-    setBoxActionArgs(undefined);
-    updateRouteVarsPWETH({
-      purchaseName: `${Number(srcDisplay).toPrecision(2)} ${dstToken.symbol}`,
-    });
-    if (srcInputDebounced) {
-      const actionArgs = generateDecentAmountInParams({
-        srcToken,
-        dstToken: dstToken,
-        srcAmount: srcInputDebounced,
-        connectedAddress,
-        toAddress: connectedAddress,
-      });
-      setBoxActionArgs(actionArgs);
-      setShowContinue(false);
-    } else if (dstInputDebounced) {
-      const actionArgs = generateDecentAmountOutParams({
-        srcToken,
-        dstToken: dstToken,
-        dstAmount: dstInputDebounced,
-        connectedAddress,
-        toAddress: connectedAddress,
-      });
-      setBoxActionArgs(actionArgs);
-      setShowContinue(false);
-    } else {
-      setSubmitting(false);
-      throw "Can't submit!";
-    }
-  };
+  // All properties on a domain are optional
+  const domain = {
+    name: 'Prize USDC.e - Aave',
+    version: '1',
+    chainId: 10,
+    verifyingContract: '0xE3B3a464ee575E8E25D2508918383b89c832f275',
+  } as const
+ 
+  // The named list of all type definitions
+  const types = {
+    Permit: [{
+        name: "owner",
+        type: "address"
+      },
+      {
+        name: "spender",
+        type: "address"
+      },
+      {
+        name: "value",
+        type: "uint256"
+      },
+      {
+        name: "nonce",
+        type: "uint256"
+      },
+      {
+        name: "deadline",
+        type: "uint256"
+      },
+    ],
+  } as const
 
-  const onConfirmClick = async () => {
-    console.log("Sending tx...", actionResponse?.tx);
-    try {
-      await sendTx({
-        account,
-        activeChainId: chain?.id!,
-        srcChainId: srcChain,
-        actionResponseTx: actionResponse?.tx as EvmTransaction,
-        setSrcTxReceipt,
-        setHash,
-        switchNetworkAsync,
-      });
-      setSubmitting(true);
-    } catch (e) {
-      console.log("Error sending tx.", e);
-      setShowContinue(true);
-    }
-  };
+  // set token value and deadline
+  const value = srcInputDebounced ? parseUnits(srcInputDebounced!, 6) :BigInt(0)
+   
+  function getTimestampInSeconds() {
+    // returns current timestamp in seconds
+    return Math.floor(Date.now() / 1000);
+  }
+  const deadline = getTimestampInSeconds() + 4200;
+
+  // get the current nonce for the deployer address
+  const nonces = useContractRead({
+    address: '0xe3b3a464ee575e8e25d2508918383b89c832f275',
+    //abi: erc20ABI,
+    
+    abi: [
+      {
+        name: 'nonces',
+        inputs: [{ internalType: "address", name: "owner", type: "address" }],
+        outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+        stateMutability: 'view',
+        type: 'function',
+      },    
+    ],
+    
+    functionName: 'nonces',
+    chainId: 10,
+    args: [(connectedAddress!)],
+    watch: true
+  })
+  console.log(nonces.data)
+
+  const message = {
+    owner: connectedAddress!,
+    spender: '0xE3B3a464ee575E8E25D2508918383b89c832f275',
+    value: value,
+    nonce: nonces.data! as bigint,
+    deadline: BigInt(deadline),
+  } as const
+
+  const { data, isError, isLoading, isSuccess, signTypedData } = useSignTypedData({
+    domain,
+    message,
+    primaryType: 'Permit',
+    types,
+  })
+  console.log(data)
+/*
+  const getSignedType = () => {
+    signedTypeData.signTypedData()
+    //return signedTypeData?.data!
+  }
+  
+  useEffect(()=>{
+    getSignedType()
+    console.log(signedTypeData?.data)
+    //const sigHex = getSignedType()
+    //setSig(hexToSignature(sigHex))
+  }, [srcInputDebounced])
+  //console.log(sig)
+  //const sig = getSignedType() ? hexToSignature(getSignedType()!) : null
+
+*/
+
 
   return (
     <>
+    <div className="text-sm text-gray-500 pt-4">Deposit into this <a href='https://optimistic.etherscan.io/token/0xe3b3a464ee575e8e25d2508918383b89c832f275#writeContract' 
+    target='_blank' className="text-primary hover:opactiy-80">Pool Together</a> contract to receive pUSDC</div>
       <div className="group mt-8 bg-white">
         <div
           className={
@@ -208,7 +255,7 @@ export default function SwapModalPWETH() {
               wallet={connectedAddress}
             />{" "}
             on{" "}
-            <ChainSelectMenuPWETH
+            <ChainSelectMenu
               chainId={srcChain}
               onSelectChain={(c) => {
                 setSrcChain(c);
@@ -245,24 +292,20 @@ export default function SwapModalPWETH() {
           }
         >
           <div className="text-sm">
-            <span className="inline-block w-16">Receive </span>
-            <TokenSelectorComponent
-              disabled={true}
-              currentChain={dstChain}
-              selectedToken={dstToken}
-              setSelectedToken={(t) => {
-                updateRouteVarsPWETH({ dstToken: t });
-              }}
-              wallet={connectedAddress}
-            />{" "}
-            on{" "}
-            <DestChainSelectMenu
-              
-              chainId={dstChain}
-              onSelectChain={(c) => {
-                updateRouteVarsPWETH({ dstChain: c });
-              }}
-            />
+            <div className="flex items-center gap-1">
+              <span className="inline-block w-16 flex">Receive </span>
+              <TokenSelectorComponent
+                disabled={true}
+                currentChain={dstChain}
+                selectedToken={dstToken}
+                setSelectedToken={(t) => {
+                  updateRouteVars({ dstToken: usdcToken });
+                }}
+                wallet={connectedAddress}
+              />{" "}
+              on{" "}
+              <Image src='/optimism.svg' height={14} width={14} alt='logo' /> Optimism
+            </div>
             <div className="my-4 px-2 font-medium leading-none relative text-3xl flex items-center">
               {dstSpinning && (
                 <div className="absolute inset-0 rounded load-shine opacity-75" />
@@ -272,7 +315,7 @@ export default function SwapModalPWETH() {
                 type="text"
                 value={dstDisplay}
                 onChange={(e) => handleDstAmtChange(e.target.value)}
-                disabled={dstSpinning || submitting}
+                disabled={true}
               />
               <div className="absolute right-4 text-gray-mid-light pointer-events-none">
                 {dstToken.symbol}
@@ -302,14 +345,39 @@ export default function SwapModalPWETH() {
       </div>
       <div className="text-red-500">{submitErrorText}</div>
       <div className="mt-auto"></div>
+      <button disabled={isLoading} onClick={() => signTypedData()}>
+          Sign typed data
+      </button>
       {showContinue ? (
+        
         <button
           className={
-            "bg-black text-white text-center font-medium" +
+            `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+            "text-center font-medium" +
             " w-full rounded-lg p-2 mt-4" +
             " relative flex items-center justify-center"
           }
-          onClick={onContinueClick}
+          onClick={() => confirmRoute({
+            chain: chain!,
+            srcChain,
+            // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
+            srcToken,
+            dstToken,
+            isNative: false,
+            setBoxActionArgs,
+            updateRouteVars,
+            // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
+            dstInputVal: srcInputDebounced!,
+            contractAddress: `0x${PUSDC_OPTIMISM?.slice(2)}`,
+            signature: DEPOSIT_SIGNATURE,
+            args: [srcInputDebounced, connectedAddress],
+            //args: [/*value,*/srcInputDebounced, connectedAddress, deadline, sig!.v, sig!.r, sig!.s],
+            connectedAddress,
+            continueDisabled,
+            setSubmitting,
+            setShowContinue,
+            srcDisplay
+          })}
           disabled={continueDisabled}
         >
           Confirm Selections
@@ -317,20 +385,26 @@ export default function SwapModalPWETH() {
       ) : (
         <button
           className={
-            "bg-primary text-white text-center font-medium" +
+            `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
+            "text-center font-medium" +
             " w-full rounded-lg p-2 mt-4" +
             " relative flex items-center justify-center"
           }
-          onClick={onConfirmClick}
+          disabled={confirmDisabled}
+          onClick={() => executeTransaction({
+            actionResponse,
+            setSubmitting,
+            setHash,
+            setShowContinue
+          })}
         >
-          Swap
+          Deposit
           {submitting && <div className="absolute right-4 load-spinner"></div>}
         </button>
       )}
-      {srcTxReceipt && (
+      {hash && (
         <div>
           <p>{hash}</p>
-          <p>{srcTxReceipt.blockHash}</p>
         </div>
       )}
     </>

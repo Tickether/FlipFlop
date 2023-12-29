@@ -2,12 +2,9 @@ import { Fragment, useEffect } from "react";
 import Image from "next/image";
 import { Popover, Transition } from "@headlessui/react";
 import { ChainId } from "@decent.xyz/box-common";
-import { destChainIconsPWETH, destChainNamesPWETH } from "../lib/contexts/routeSelectContextPWETH";
+import { chainIcons, chainNames } from "../lib/contexts/routeSelectContext";
 import { useSearchParams } from "next/navigation";
-
-const defaultAvailableChains = [
-  ChainId.OPTIMISM,
-];
+import { defaultAvailableChains } from "@/lib/constants";
 
 export interface ChainSelectMenuProps {
   chainId: ChainId;
@@ -18,7 +15,7 @@ export interface ChainSelectMenuProps {
   anchorToRight?: boolean;
 }
 
-export default function DestChainSelectMenu({
+export default function ChainSelectMenu({
   chainId,
   onSelectChain,
   availableChains = defaultAvailableChains,
@@ -39,7 +36,7 @@ export default function DestChainSelectMenu({
         <>
           <Popover.Button>
             {renderBtnInner ? (
-              renderBtnInner(destChainNamesPWETH[chainId], destChainIconsPWETH[chainId])
+              renderBtnInner(chainNames[chainId], chainIcons[chainId])
             ) : (
               <div className="border border-[#BEC3C9] rounded px-2 leading-none inline-flex items-baseline py-1.5">
                 <span className="self-center">
@@ -47,11 +44,11 @@ export default function DestChainSelectMenu({
                     className="w-3.5 h-3.5 object-contain"
                     width="14"
                     height="14"
-                    alt={destChainNamesPWETH[chainId]}
-                    src={destChainIconsPWETH[chainId]}
+                    alt={chainNames[chainId]}
+                    src={chainIcons[chainId]}
                   />
                 </span>
-                <span className="ml-1">{destChainNamesPWETH[chainId]}</span>
+                <span className="ml-1">{chainNames[chainId]}</span>
               </div>
             )}
           </Popover.Button>
@@ -88,10 +85,10 @@ export default function DestChainSelectMenu({
                       className="w-3.5 h-3.5 object-contain"
                       width="14"
                       height="14"
-                      src={destChainIconsPWETH[c]}
-                      alt={destChainNamesPWETH[c]}
+                      src={chainIcons[c]}
+                      alt={chainNames[c]}
                     />
-                    <div className="ml-1">{destChainNamesPWETH[c]}</div>
+                    <div className="ml-1">{chainNames[c]}</div>
                   </button>
                 ))}
               </div>

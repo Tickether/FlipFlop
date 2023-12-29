@@ -1,6 +1,6 @@
 import { ActionType, TokenInfo } from "@decent.xyz/box-common";
 import { UseBoxActionArgs } from "@decent.xyz/box-hooks";
-import { parseUnits } from "viem";
+import { Address, parseUnits, zeroAddress } from "viem";
 import { usdcToken } from "./constants";
 
 export const generateDecentAmountInParams = ({
@@ -47,17 +47,26 @@ export const generateDecentAmountInParams = ({
 
 export const generateDecentAmountOutParams = ({
   dstToken,
+  isNative,
   dstAmount,
   srcToken = usdcToken,
   connectedAddress,
+  contractAddress,
   toAddress,
+  signature,
+  args
 }: {
   dstToken: TokenInfo;
+  isNative?: boolean;
   dstAmount?: string;
   srcToken?: TokenInfo;
   connectedAddress?: string;
+  contractAddress?: Address;
   toAddress?: string;
+  signature?: string;
+  args?: any;
 }): UseBoxActionArgs | undefined => {
+  let txConfig;
   if (!dstAmount || !Number(dstAmount)) {
     throw "no destination amount inputted";
   }
@@ -67,9 +76,15 @@ export const generateDecentAmountOutParams = ({
   if (!toAddress) {
     throw `no to address`;
   }
+  if (signature) {
+    txConfig = makeEvmActionConfig(dstToken, signature, args, dstAmount, isNative, contractAddress);
+  } else {
+    txConfig = makeActionConfig(dstToken, toAddress, dstAmount);
+  }
   return {
+    // TODO: refactor to use ArbitraryEvmAction type
     actionType: ActionType.NftMint,
-    actionConfig: makeActionConfig(dstToken, toAddress, dstAmount),
+    actionConfig: txConfig,
     srcToken: srcToken.address,
     dstToken: dstToken.address,
     srcChainId: srcToken.chainId,
@@ -120,6 +135,27 @@ const makeNativeTransferConfig = (
     },
     signature: "function transfer(uint256 amount)",
     args: [parseUnits(dstAmount, dstToken.decimals)],
+  };
+};
+
+const makeEvmActionConfig = (
+  dstToken: TokenInfo, 
+  signature: string, 
+  args: any, 
+  dstAmount: string,
+  isNative?: boolean,
+  contractAddress?: Address
+) => {
+  return {
+    contractAddress: contractAddress || dstToken.address,
+    chainId: dstToken.chainId,
+    cost: {
+      amount: parseUnits(dstAmount, dstToken.decimals),
+      isNative: isNative || true as true,
+      tokenAddress: !isNative ? dstToken.address : zeroAddress,
+    },
+    signature,
+    args,
   };
 };
 

@@ -17,9 +17,8 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import localFont from "next/font/local";
 import { BoxHooksContextProvider } from "@decent.xyz/box-hooks";
 import { BoxActionContextProvider } from "../lib/contexts/decentActionContext";
-import RouteSelectProviderPUSDC from "../lib/contexts/routeSelectContextPUSDC";
-import RouteSelectProviderPWETH from "@/lib/contexts/routeSelectContextPWETH";
-import RouteSelectProviderPDAI from "@/lib/contexts/routeSelectContextPDAI";
+import RouteSelectProvider from "../lib/contexts/routeSelectContext";
+import { ToastContainer } from 'react-toastify';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -30,7 +29,12 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     base,
     avalanche,
   ],
-  [publicProvider()]
+  [  
+    alchemyProvider({
+      apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
+    }),
+    publicProvider()
+  ],
 );
 const { connectors } = getDefaultWallets({
   appName: 'FlipFLop',
@@ -44,33 +48,31 @@ const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
-/*
 export const monument = localFont({
   src: "../fonts/EduMonumentGroteskVariable.woff2",
   variable: "--font-monument",
 });
-*/
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <BoxHooksContextProvider
-          apiKey={process.env.NEXT_PUBLIC_DECENT_API_KEY as string}
-        >
-          <RouteSelectProviderPUSDC>
-          <RouteSelectProviderPWETH>
-          <RouteSelectProviderPDAI>
-            <BoxActionContextProvider>
-              
-              <Component {...pageProps} />
-      
-            </BoxActionContextProvider>
-         
-          </RouteSelectProviderPDAI>
-          </RouteSelectProviderPWETH>
-          </RouteSelectProviderPUSDC>
-        </BoxHooksContextProvider>
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <div
+      className={`${monument.variable} font-sans flex flex-col min-h-screen`}
+    >
+      <WagmiConfig config={wagmiConfig}>
+        <RainbowKitProvider chains={chains}>
+          <BoxHooksContextProvider
+            apiKey={process.env.NEXT_PUBLIC_DECENT_API_KEY as string}
+          >
+            <RouteSelectProvider>
+              <BoxActionContextProvider>
+                <div className={`${monument.variable} font-sans`}>
+                  <Component {...pageProps} />
+                </div>
+              </BoxActionContextProvider>
+            </RouteSelectProvider>
+          </BoxHooksContextProvider>
+        </RainbowKitProvider>
+      </WagmiConfig>
+    </div>
   );
 }
