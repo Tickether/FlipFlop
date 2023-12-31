@@ -20,7 +20,7 @@ export default function Home() {
     >
       <div className="z-10 text-sm">
         <div className="fixed right-20 max-[1024px]:fixed max-[1024px]:left-0 max-[1024px]:top-0 max-[1024px]:flex max-[1024px]:w-full max-[1024px]:justify-center max-[1024px]:pb-6 max-[1024px]:pt-8 max-[1024px]:backdrop-blur-2xl max-[1024px]:border-b max-[1024px]:border-gray-300 max-[1024px]:bg-gradient-to-b max-[1024px]:from-zinc-200">
-          <ConnectButton/>
+          <ConnectButton showBalance={false}/>
         </div>
       </div>
       
