@@ -355,7 +355,7 @@ export default function DepositModalWETH({ connectedAddress }: any) {
               " w-full rounded-lg p-2 mt-4" +
               " relative flex items-center justify-center"
             }
-            disabled={continueDisabled}
+            disabled={continueDisabled || readPrizeAllowance?.data! >= value}
             onClick={() => {
               if (chain?.id === dstChain) {
                 addPrizeAllowance.write()
@@ -366,7 +366,7 @@ export default function DepositModalWETH({ connectedAddress }: any) {
                 addPrizeAllowance.write()
               }
             }}
-          >Approve PoolTogether</button>
+          >{readPrizeAllowance?.data! >= value && value != BigInt(0) ? 'Approved PoolTogether' : 'Approve PoolTogether'}</button>
           {
             !srcToken.isNative && (
               <button
@@ -376,7 +376,7 @@ export default function DepositModalWETH({ connectedAddress }: any) {
                   " w-full rounded-lg p-2 mt-4" +
                   " relative flex items-center justify-center"
                 }
-                disabled={continueDisabled}
+                disabled={continueDisabled || readDecentAllowance?.data! >= value}
                 onClick={() => {
                   if (chain?.id === srcChain) {
                     addDecentAllowance.write()
@@ -387,7 +387,7 @@ export default function DepositModalWETH({ connectedAddress }: any) {
                     addDecentAllowance.write()
                   }
                 }}
-              >Approve Decent</button>
+              >{readDecentAllowance?.data! >= value && value != BigInt(0) ? 'Approved Decent' : 'Approve Decent'}</button>
             )
           }
         </>

@@ -449,7 +449,7 @@ const addDecentAllowance = useContractWrite({
               " w-full rounded-lg p-2 mt-4" +
               " relative flex items-center justify-center"
             }
-            disabled={continueDisabled}
+            disabled={continueDisabled || readPrizeAllowance?.data! >= value}
             onClick={() => {
               if (chain?.id === dstChain) {
                 addPrizeAllowance.write()
@@ -460,7 +460,7 @@ const addDecentAllowance = useContractWrite({
                 addPrizeAllowance.write()
               }
             }}
-          >Approve PoolTogether</button>
+          >{readPrizeAllowance?.data! >= value && value != BigInt(0) ? 'Approved PoolTogether' : 'Approve PoolTogether'}</button>
           {
             !srcToken.isNative && (
               <button
@@ -470,7 +470,7 @@ const addDecentAllowance = useContractWrite({
                   " w-full rounded-lg p-2 mt-4" +
                   " relative flex items-center justify-center"
                 }
-                disabled={continueDisabled}
+                disabled={continueDisabled || readDecentAllowance?.data! >= value}
                 onClick={() => {
                   if (chain?.id === srcChain) {
                     addDecentAllowance.write()
@@ -481,7 +481,7 @@ const addDecentAllowance = useContractWrite({
                     addDecentAllowance.write()
                   }
                 }}
-              >Approve Decent</button>
+              >{readDecentAllowance?.data! >= value && value != BigInt(0) ? 'Approved Decent' : 'Approve Decent'}</button>
             )
           }
         </>
