@@ -13,12 +13,13 @@ import useDebounced from "../lib/useDebounced";
 import { useAmtInQuote, useAmtOutQuote } from "../lib/hooks/useSwapQuotes";
 import { BoxActionContext } from "../lib/contexts/decentActionContext";
 import { roundValue } from "../lib/roundValue";
-import { erc20ABI, useNetwork } from "wagmi";
-import { Hex, } from "viem";
+import { erc20ABI, useContractRead, useContractWrite, useNetwork } from "wagmi";
+import { Hex, parseUnits, } from "viem";
 import { useBalance } from "../lib/hooks/useBalance";
 import { confirmRoute, executeTransaction } from "@/lib/executeTransaction";
-import { PDAI_OPTIMISM, daiToken } from "@/lib/constants";
+import { PDAI_OPTIMISM, PWETH_OPTIMISM, USDC_OPTIMISM, daiToken, getChainBridge } from "@/lib/constants";
 import Image from "next/image";
+import { switchNetwork } from "wagmi/actions";
 
 export default function DepositModalDAI({ connectedAddress }: any) {
   //pool together v5 example
@@ -77,6 +78,8 @@ export default function DepositModalDAI({ connectedAddress }: any) {
     // setSubmitErrorText('');
   };
 
+  const [bridge, setBridge] = useState<string | null>(null);
+
   const [srcInputVal, setSrcInputVal] = useState<string | null>(null);
   const [dstInputVal, setDstInputVal] = useState<string | null>(null);
 
@@ -131,8 +134,40 @@ export default function DepositModalDAI({ connectedAddress }: any) {
   
   const confirmDisabled = !actionResponse?.tx;
 
-  
+  const value = srcInputDebounced ? parseUnits(srcInputDebounced!, 18) :BigInt(0)
 
+  const readPrizeAllowance = useContractRead({
+    address: `0x${dstToken.address?.slice(2)}`,
+    abi: erc20ABI,
+    functionName: 'allowance',
+    args: [(connectedAddress), (`0x${PDAI_OPTIMISM?.slice(2)}`)],
+    chainId: 10
+  })
+  console.log(readPrizeAllowance.data)
+  const addPrizeAllowance = useContractWrite({
+    address: `0x${dstToken.address?.slice(2)}`,
+    abi: erc20ABI,
+    functionName: 'approve',
+    args: [(`0x${PWETH_OPTIMISM?.slice(2)}`), (value)]
+  })
+  ///////////////////////////////////////////////////////////////////////////////
+  
+  useEffect(()=>{
+    setBridge(getChainBridge(srcChain)!)
+  },[srcChain])
+  const readDecentAllowance = useContractRead({
+    address: `0x${srcToken.address?.slice(2)}`,
+    abi: erc20ABI,
+    functionName: 'allowance',
+    args: [(connectedAddress), (`0x${bridge?.slice(2)}`)]
+  })
+  console.log(readDecentAllowance.data)
+  const addDecentAllowance = useContractWrite({
+    address: `0x${srcToken.address?.slice(2)}`,
+    abi: erc20ABI,
+    functionName: 'approve',
+    args: [(`0x${bridge?.slice(2)}`), (value)]
+  })
 
   return (
     <>
@@ -249,60 +284,110 @@ export default function DepositModalDAI({ connectedAddress }: any) {
       </div>
       <div className="text-red-500">{submitErrorText}</div>
       <div className="mt-auto"></div>
-      {showContinue ? (
-        
-        <button
-          className={
-            `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
-            "text-center font-medium" +
-            " w-full rounded-lg p-2 mt-4" +
-            " relative flex items-center justify-center"
-          }
-          onClick={() => confirmRoute({
-            chain: chain!,
-            srcChain,
-            // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
-            srcToken,
-            dstToken,
-            isNative: false,
-            setBoxActionArgs,
-            updateRouteVars,
-            // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
-            dstInputVal: srcInputDebounced!,
-            contractAddress: `0x${PDAI_OPTIMISM?.slice(2)}`,
-            signature: DEPOSIT_SIGNATURE,
-            args: [srcInputDebounced, connectedAddress],
-          
-            connectedAddress,
-            continueDisabled,
-            setSubmitting,
-            setShowContinue,
-            srcDisplay
-          })}
-          disabled={continueDisabled}
-        >
-          Confirm Selections
-        </button>
+      {readPrizeAllowance?.data! >= value && readDecentAllowance?.data! >= value ? (
+        <>
+          {showContinue ? (
+            
+            <button
+              className={
+                `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+                "text-center font-medium" +
+                " w-full rounded-lg p-2 mt-4" +
+                " relative flex items-center justify-center"
+              }
+              onClick={() => confirmRoute({
+                chain: chain!,
+                srcChain,
+                // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
+                srcToken,
+                dstToken,
+                isNative: false,
+                setBoxActionArgs,
+                updateRouteVars,
+                // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
+                dstInputVal: srcInputDebounced!,
+                contractAddress: `0x${PDAI_OPTIMISM?.slice(2)}`,
+                signature: DEPOSIT_SIGNATURE,
+                args: [srcInputDebounced, connectedAddress],
+              
+                connectedAddress,
+                continueDisabled,
+                setSubmitting,
+                setShowContinue,
+                srcDisplay
+              })}
+              disabled={continueDisabled}
+            >
+              Confirm Selections
+            </button>
+          ) : (
+            <button
+              className={
+                `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
+                "text-center font-medium" +
+                " w-full rounded-lg p-2 mt-4" +
+                " relative flex items-center justify-center"
+              }
+              disabled={confirmDisabled}
+              onClick={() => executeTransaction({
+                actionResponse,
+                setSubmitting,
+                setHash,
+                setShowContinue
+              })}
+            >
+              Deposit
+              {submitting && <div className="absolute right-4 load-spinner"></div>}
+            </button>
+          )}
+        </>
       ) : (
-        <button
-          className={
-            `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
-            "text-center font-medium" +
-            " w-full rounded-lg p-2 mt-4" +
-            " relative flex items-center justify-center"
+        <>
+          <button
+            className={
+              `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+              "text-center font-medium" +
+              " w-full rounded-lg p-2 mt-4" +
+              " relative flex items-center justify-center"
+            }
+            disabled={continueDisabled}
+            onClick={() => {
+              if (chain?.id === dstChain) {
+                addPrizeAllowance.write()
+              } else {
+                switchNetwork({
+                  chainId: dstChain
+                })
+                addPrizeAllowance.write()
+              }
+            }}
+          >Approve PoolTogether</button>
+          {
+            !srcToken.isNative && (
+              <button
+                className={
+                  `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+                  "text-center font-medium" +
+                  " w-full rounded-lg p-2 mt-4" +
+                  " relative flex items-center justify-center"
+                }
+                disabled={continueDisabled}
+                onClick={() => {
+                  if (chain?.id === srcChain) {
+                    addDecentAllowance.write()
+                  } else {
+                    switchNetwork({
+                      chainId: srcChain
+                    })
+                    addDecentAllowance.write()
+                  }
+                }}
+              >Approve Decent</button>
+            )
           }
-          disabled={confirmDisabled}
-          onClick={() => executeTransaction({
-            actionResponse,
-            setSubmitting,
-            setHash,
-            setShowContinue
-          })}
-        >
-          Deposit
-          {submitting && <div className="absolute right-4 load-spinner"></div>}
-        </button>
+        </>
       )}
+      
       {hash && (
         <div>
           <p>{hash}</p>

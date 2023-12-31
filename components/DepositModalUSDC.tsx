@@ -13,12 +13,13 @@ import useDebounced from "../lib/useDebounced";
 import { useAmtInQuote, useAmtOutQuote } from "../lib/hooks/useSwapQuotes";
 import { BoxActionContext } from "../lib/contexts/decentActionContext";
 import { roundValue } from "../lib/roundValue";
-import { erc20ABI, useContractRead, useNetwork, useSignTypedData } from "wagmi";
+import { erc20ABI, useContractRead, useContractWrite, useNetwork, useSignTypedData } from "wagmi";
 import { Hex, Signature, hexToSignature, parseUnits } from "viem";
 import { useBalance } from "../lib/hooks/useBalance";
 import { confirmRoute, executeTransaction } from "@/lib/executeTransaction";
-import { PUSDC_OPTIMISM, usdcToken } from "@/lib/constants";
+import { PUSDC_OPTIMISM, PWETH_OPTIMISM, USDC_OPTIMISM, getChainBridge, usdcToken } from "@/lib/constants";
 import Image from "next/image";
+import { switchNetwork } from "wagmi/actions";
 
 export default function DepositModalUSDC({ connectedAddress }: any) {
   //pool together v5 example
@@ -118,6 +119,8 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
     }
   }, [srcTokenBalance, srcDisplay]);
 
+  const [bridge, setBridge] = useState<string | null>(null);
+
   const srcSpinning = amtOutLoading || dstDebounceWaiting;
   const dstSpinning = amtInLoading || srcDebounceWaiting;
 
@@ -133,6 +136,8 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
   
   const confirmDisabled = !actionResponse?.tx;
 
+  const value = srcInputDebounced ? parseUnits(srcInputDebounced!, 6) :BigInt(0)
+/*
   // All properties on a domain are optional
   const domain = {
     name: 'Prize USDC.e - Aave',
@@ -165,10 +170,9 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
       },
     ],
   } as const
-
-  // set token value and deadline
-  const value = srcInputDebounced ? parseUnits(srcInputDebounced!, 6) :BigInt(0)
-   
+*/
+  // set token deadline
+  /* 
   function getTimestampInSeconds() {
     // returns current timestamp in seconds
     return Math.floor(Date.now() / 1000);
@@ -212,7 +216,8 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
     types,
   })
   console.log(data)
-/*
+*/
+  /*
   const getSignedType = () => {
     signedTypeData.signTypedData()
     //return signedTypeData?.data!
@@ -228,6 +233,39 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
   //const sig = getSignedType() ? hexToSignature(getSignedType()!) : null
 
 */
+const readPrizeAllowance = useContractRead({
+  address: `0x${dstToken.address?.slice(2)}`,
+  abi: erc20ABI,
+  functionName: 'allowance',
+  args: [(connectedAddress), (`0x${PUSDC_OPTIMISM?.slice(2)}`)],
+  chainId: 10
+})
+console.log(readPrizeAllowance.data)
+const addPrizeAllowance = useContractWrite({
+  address: `0x${dstToken.address?.slice(2)}`,
+  abi: erc20ABI,
+  functionName: 'approve',
+  args: [(`0x${PUSDC_OPTIMISM?.slice(2)}`), (value)]
+})
+
+///////////////////////////////////////////////////////////////////////////////
+
+useEffect(()=>{
+  setBridge(getChainBridge(srcChain)!)
+},[srcChain])
+const readDecentAllowance = useContractRead({
+  address: `0x${srcToken.address?.slice(2)}`,
+  abi: erc20ABI,
+  functionName: 'allowance',
+  args: [(connectedAddress), (`0x${bridge?.slice(2)}`)]
+})
+console.log(readDecentAllowance.data)
+const addDecentAllowance = useContractWrite({
+  address: `0x${srcToken.address?.slice(2)}`,
+  abi: erc20ABI,
+  functionName: 'approve',
+  args: [(`0x${bridge?.slice(2)}`), (value)]
+})
 
 
   return (
@@ -345,63 +383,110 @@ export default function DepositModalUSDC({ connectedAddress }: any) {
       </div>
       <div className="text-red-500">{submitErrorText}</div>
       <div className="mt-auto"></div>
-      <button disabled={isLoading} onClick={() => signTypedData()}>
-          Sign typed data
-      </button>
-      {showContinue ? (
+      {readPrizeAllowance?.data! >= value && readDecentAllowance?.data! >= value ? (
+        <>
+          {showContinue ? (
         
-        <button
-          className={
-            `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
-            "text-center font-medium" +
-            " w-full rounded-lg p-2 mt-4" +
-            " relative flex items-center justify-center"
-          }
-          onClick={() => confirmRoute({
-            chain: chain!,
-            srcChain,
-            // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
-            srcToken,
-            dstToken,
-            isNative: false,
-            setBoxActionArgs,
-            updateRouteVars,
-            // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
-            dstInputVal: srcInputDebounced!,
-            contractAddress: `0x${PUSDC_OPTIMISM?.slice(2)}`,
-            signature: DEPOSIT_SIGNATURE,
-            args: [srcInputDebounced, connectedAddress],
-            //args: [/*value,*/srcInputDebounced, connectedAddress, deadline, sig!.v, sig!.r, sig!.s],
-            connectedAddress,
-            continueDisabled,
-            setSubmitting,
-            setShowContinue,
-            srcDisplay
-          })}
-          disabled={continueDisabled}
-        >
-          Confirm Selections
-        </button>
+            <button
+              className={
+                `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+                "text-center font-medium" +
+                " w-full rounded-lg p-2 mt-4" +
+                " relative flex items-center justify-center"
+              }
+              onClick={() => confirmRoute({
+                chain: chain!,
+                srcChain,
+                // TODO: right now only working with USDC -- need to fix to support any token on the deposit.
+                srcToken,
+                dstToken,
+                isNative: false,
+                setBoxActionArgs,
+                updateRouteVars,
+                // Users should specify how much they want to deposit; but we want to calculate based on exactAmountOut so that we can call the deposit function.  See confirmRoute in executeTransaction.ts.
+                dstInputVal: srcInputDebounced!,
+                contractAddress: `0x${PUSDC_OPTIMISM?.slice(2)}`,
+                signature: DEPOSIT_SIGNATURE,
+                args: [srcInputDebounced, connectedAddress],
+                //args: [/*value,*/srcInputDebounced, connectedAddress, deadline, sig!.v, sig!.r, sig!.s],
+                connectedAddress,
+                continueDisabled,
+                setSubmitting,
+                setShowContinue,
+                srcDisplay
+              })}
+              disabled={continueDisabled}
+            >
+              Confirm Selections
+            </button>
+          ) : (
+            <button
+              className={
+                `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
+                "text-center font-medium" +
+                " w-full rounded-lg p-2 mt-4" +
+                " relative flex items-center justify-center"
+              }
+              disabled={confirmDisabled}
+              onClick={() => executeTransaction({
+                actionResponse,
+                setSubmitting,
+                setHash,
+                setShowContinue
+              })}
+            >
+              Deposit
+              {submitting && <div className="absolute right-4 load-spinner"></div>}
+            </button>
+          )}
+        </>
       ) : (
-        <button
-          className={
-            `${confirmDisabled ? 'bg-gray-300 text-gray-600 ': 'bg-primary text-white '}` +
-            "text-center font-medium" +
-            " w-full rounded-lg p-2 mt-4" +
-            " relative flex items-center justify-center"
+        <>
+          <button
+            className={
+              `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+              "text-center font-medium" +
+              " w-full rounded-lg p-2 mt-4" +
+              " relative flex items-center justify-center"
+            }
+            disabled={continueDisabled}
+            onClick={() => {
+              if (chain?.id === dstChain) {
+                addPrizeAllowance.write()
+              } else {
+                switchNetwork({
+                  chainId: dstChain
+                })
+                addPrizeAllowance.write()
+              }
+            }}
+          >Approve PoolTogether</button>
+          {
+            !srcToken.isNative && (
+              <button
+                className={
+                  `${continueDisabled ? 'bg-gray-300 text-gray-600 ' : 'bg-black text-white '}` +
+                  "text-center font-medium" +
+                  " w-full rounded-lg p-2 mt-4" +
+                  " relative flex items-center justify-center"
+                }
+                disabled={continueDisabled}
+                onClick={() => {
+                  if (chain?.id === srcChain) {
+                    addDecentAllowance.write()
+                  } else {
+                    switchNetwork({
+                      chainId: srcChain
+                    })
+                    addDecentAllowance.write()
+                  }
+                }}
+              >Approve Decent</button>
+            )
           }
-          disabled={confirmDisabled}
-          onClick={() => executeTransaction({
-            actionResponse,
-            setSubmitting,
-            setHash,
-            setShowContinue
-          })}
-        >
-          Deposit
-          {submitting && <div className="absolute right-4 load-spinner"></div>}
-        </button>
+        </>
       )}
+      
       {hash && (
         <div>
           <p>{hash}</p>

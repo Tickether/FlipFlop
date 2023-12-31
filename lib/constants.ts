@@ -76,7 +76,7 @@ export const PDAI_OPTIMISM = "0xCe8293f586091d48A0cE761bBf85D5bCAa1B8d2b";
 
 export const pdaiToken: TokenInfo = {
   address: PDAI_OPTIMISM,
-  decimals: 6,
+  decimals: 18,
   name: "PoolTogether Prize DAI Coin",
   symbol: "pDAI",
   logo: `https://app.cabana.fi/icons/pDAI.svg`,
@@ -107,5 +107,22 @@ export function getChainIcon(chainId: ChainId | number) {
       return '/base.png';
     case (ChainId.AVALANCHE):
       return '/avalanche.svg';
+  }
+}
+
+export function getChainBridge(chainId: ChainId | number) {
+  switch (chainId) {
+    case (ChainId.ETHEREUM):
+      return '0x7358Eb6EBEd017345940328ce20B5ddc2B91F9b0';
+    case (ChainId.OPTIMISM):
+      return '0x4F2540e751A77CF18B6A67Ce85466e47c222da4f';
+    case (ChainId.ARBITRUM):
+      return '0xcD7df361aA1dEBE7331a76fFFd7F457DE22400d1';
+    case (ChainId.POLYGON):
+      return '0xCCadF28d9c74c8D412feEcD86EA9B0a9CefF1B28';
+    case (ChainId.BASE):
+      return '0x3684e93AE82b40238911DC71c3875E08e33f4ddC';
+    case (ChainId.AVALANCHE):
+      return '0xF434cD4878d16811a2777D87873AF04ca6656F1B';
   }
 }
