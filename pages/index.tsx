@@ -18,38 +18,12 @@ export default function Home() {
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
     >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <div className="fixed left-0 top-0 flex w-full justify-center pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto max-[1024px]:border-b max-[1024px]:border-gray-300 max-[1024px]:bg-gradient-to-b max-[1024px]:from-zinc-200">
+      <div className="z-10 text-sm">
+        <div className="fixed right-20 max-[1024px]:fixed max-[1024px]:left-0 max-[1024px]:top-0 max-[1024px]:flex max-[1024px]:w-full max-[1024px]:justify-center max-[1024px]:pb-6 max-[1024px]:pt-8 max-[1024px]:backdrop-blur-2xl max-[1024px]:border-b max-[1024px]:border-gray-300 max-[1024px]:bg-gradient-to-b max-[1024px]:from-zinc-200">
           <ConnectButton/>
         </div>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Powered By{' '}
-            <Image
-              src="/decent.png"
-              alt="Decent Logo"
-              className=""
-              width={100}
-              height={24}
-              priority
-            />
-            X{' '}
-            <Image
-              src="/pooltogether.svg"
-              alt="PoolTogether Logo"
-              className=""
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
       </div>
+      
 
       <div className="relative flex flex-col place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
         <Image
@@ -132,6 +106,35 @@ export default function Home() {
           <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
             From any Token on any Chain into Pooltogether Prize DAI Vaults.
           </p>
+        </div>
+      </div>
+      <div className="">
+        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white">
+          <a
+            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
+            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Powered By{' '}
+            <Image
+              src="/decent.png"
+              alt="Decent Logo"
+              className=""
+              width={100}
+              height={24}
+              priority
+            />
+            X{' '}
+            <Image
+              src="/pooltogether.svg"
+              alt="PoolTogether Logo"
+              className=""
+              width={100}
+              height={24}
+              priority
+            />
+          </a>
         </div>
       </div>
       {openPdaiModal && <PDAI setOpenModalPDAI={setOpenModalPDAI} />}
