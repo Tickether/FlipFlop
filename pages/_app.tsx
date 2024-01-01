@@ -19,6 +19,7 @@ import { BoxHooksContextProvider } from "@decent.xyz/box-hooks";
 import { BoxActionContextProvider } from "../lib/contexts/decentActionContext";
 import RouteSelectProvider from "../lib/contexts/routeSelectContext";
 import { ToastContainer } from 'react-toastify';
+import React from "react";
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -53,7 +54,13 @@ export const monument = localFont({
   variable: "--font-monument",
 });
 
+
+
 export default function App({ Component, pageProps }: AppProps) {
+  
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
+
   return (
     <div
       className={`${monument.variable} font-sans flex flex-col min-h-screen`}
@@ -66,7 +73,9 @@ export default function App({ Component, pageProps }: AppProps) {
             <RouteSelectProvider>
               <BoxActionContextProvider>
                 <div className={`${monument.variable} font-sans`}>
-                  <Component {...pageProps} />
+                  {
+                    mounted && <Component {...pageProps} />
+                  }
                 </div>
               </BoxActionContextProvider>
             </RouteSelectProvider>

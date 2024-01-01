@@ -5,6 +5,9 @@ import { useState } from 'react'
 import PDAI from '@/components/modals/pDAI'
 import PUSDC from '@/components/modals/pUSDC'
 import PWETH from '@/components/modals/pWETH'
+import { erc4626ABI, useContractRead } from 'wagmi'
+import { PDAI_OPTIMISM, PUSDC_OPTIMISM, PWETH_OPTIMISM } from '@/lib/constants'
+import { formatUnits } from 'viem'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,6 +16,34 @@ export default function Home() {
   const [openPdaiModal, setOpenModalPDAI] = useState<boolean>(false) 
   const [openPusdcModal, setOpenModalPUSDC] = useState<boolean>(false) 
   const [openPwethModal, setOpenModalPWETH] = useState<boolean>(false) 
+
+  const readDepositsPUSDC = useContractRead({
+    address: `0x${PUSDC_OPTIMISM?.slice(2)}`,
+    abi: erc4626ABI,
+    functionName: 'totalAssets',
+    chainId: 10
+  })
+  console.log(readDepositsPUSDC.data)
+  const tvlUSDC = readDepositsPUSDC.data && typeof readDepositsPUSDC.data === 'bigint' ? (Number(formatUnits(readDepositsPUSDC.data!, 6))).toFixed(4) : '0'
+  
+
+  const readDepositsPWETH = useContractRead({
+    address: `0x${PWETH_OPTIMISM?.slice(2)}`,
+    abi: erc4626ABI,
+    functionName: 'totalAssets',
+    chainId: 10
+  })
+  console.log(readDepositsPWETH.data)
+  const tvlWETH = readDepositsPWETH.data && typeof readDepositsPWETH.data === 'bigint' ? (Number(formatUnits(readDepositsPWETH.data!, 18))).toFixed(4) : '0'
+
+  const readDepositsPDAI = useContractRead({
+    address: `0x${PDAI_OPTIMISM?.slice(2)}`,
+    abi: erc4626ABI,
+    functionName: 'totalAssets',
+    chainId: 10
+  })
+  console.log(readDepositsPDAI.data)
+  const tvlDAI = readDepositsPDAI.data && typeof readDepositsPDAI.data === 'bigint' ? (Number(formatUnits(readDepositsPDAI.data!, 18))).toFixed(4) : '0'
 
   return (
     <main
@@ -60,6 +91,18 @@ export default function Home() {
           <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
             From any Token on any Chain into Pooltogether Prize USDC Vaults
           </p>
+          <p>
+            <span>TVL:</span>{' '}
+            <span>{tvlUSDC} USDC</span>
+          </p>
+          <p>
+            <span>Prize Yield:</span>{' '}
+            <span>4.7% APR</span>
+          </p>
+          <p>
+            <span>Bonus Rewards:</span>{' '}
+            <span>33.4% APR</span>
+          </p>
         </div>
 
         <div
@@ -83,6 +126,18 @@ export default function Home() {
           <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
             From any Token on any Chain into Pooltogether Prize WETH Vaults
           </p>
+          <p>
+            <span>TVL:</span>{' '}
+            <span>{tvlWETH} WETH</span>
+          </p>
+          <p>
+            <span>Prize Yield:</span>{' '}
+            <span>1.1% APR</span>
+          </p>
+          <p>
+            <span>Bonus Rewards:</span>{' '}
+            <span>19.2% APR</span>
+          </p>
         </div>
 
         <div
@@ -105,6 +160,18 @@ export default function Home() {
           </h2>
           <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
             From any Token on any Chain into Pooltogether Prize DAI Vaults.
+          </p>
+          <p>
+            <span>TVL:</span>{' '}
+            <span>{tvlDAI} DAI</span>
+          </p>
+          <p>
+            <span>Prize Yield:</span>{' '}
+            <span>3.0% APR</span>
+          </p>
+          <p>
+            <span>Bonus Rewards:</span>{' '}
+            <span>37.0% APR</span>
           </p>
         </div>
       </div>
