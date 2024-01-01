@@ -17,7 +17,7 @@ export default function PUSDC({setOpenModalPUSDC} : PusdcProps) {
     })
     return (
         <>
-            <main className="main fixed flex flex-col text-purple-700 bg-opacity-7 w-screen h-screen items-center justify-center top-0 left-0 right-0 bottom-0 backdrop-blur-[666.666px] max-[1024px]:px-8">
+            <main className="main fixed flex flex-col text-purple-700 bg-opacity-7 w-screen h-screen items-center justify-center top-0 left-0 right-0 bottom-0 backdrop-blur-[666.666px] max-[1024px]:px-8 max-[1024px]:my-8">
                 <div>
                     <div className="flex justify-between">
                         <div>
