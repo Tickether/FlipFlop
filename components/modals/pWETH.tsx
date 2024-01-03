@@ -1,6 +1,8 @@
 import Image from "next/image"
 import DepositModalWETH from "../DepositModalWETH"
-import { useAccount, useBalance } from "wagmi"
+import { useAccount, useBalance, useNetwork } from "wagmi"
+import { configureChains, mainnet } from '@wagmi/core'
+import { publicProvider } from '@wagmi/core/providers/public'
 import { PWETH_OPTIMISM } from "@/lib/constants"
 
 interface PwethProps {
@@ -8,6 +10,8 @@ interface PwethProps {
 }
 export default function PWETH({setOpenModalPWETH} : PwethProps) {
     const { address } = useAccount()
+    const { chain } = useNetwork();
+    const { publicClient } = configureChains([chain || mainnet], [publicProvider()])
     const { data, isError, isLoading } = useBalance({
         token: `0x${PWETH_OPTIMISM?.slice(2)}`,
         address: address!,
@@ -31,7 +35,7 @@ export default function PWETH({setOpenModalPWETH} : PwethProps) {
                         />
                     </div>
                     <div>
-                        <DepositModalWETH connectedAddress={address}/>
+                        <DepositModalWETH connectedAddress={address} publicClient={publicClient} />
                     </div>
                 </div>
             </main>
